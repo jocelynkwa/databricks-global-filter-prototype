@@ -1,0 +1,267 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Bike Share Analytics — filter scope prototype</title>
+<script>
+  (() => {
+    const param = new URLSearchParams(window.location.search).get("scoutTheme");
+    const theme =
+      param || (window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
+    document.documentElement.setAttribute("data-theme", theme);
+  })();
+</script>
+<style>
+:root {
+  color-scheme: light;
+  --cp-bg: #f7f4ef;
+  --cp-bg-elevated: #fcfbf8;
+  --cp-surface: #ffffff;
+  --cp-surface-soft: #f5f5f5;
+  --cp-border: #dedede;
+  --cp-border-strong: #919191;
+  --cp-text: #242424;
+  --cp-text-muted: #5c5c5c;
+  --cp-text-soft: #6f6f6f;
+  --cp-accent: #b11f4b;
+  --cp-accent-hover: #9a1a41;
+  --cp-accent-soft: rgba(177, 31, 75, 0.08);
+  --cp-accent-fg: #ffffff;
+  --cp-success: #16a34a;
+  --cp-danger: #dc2626;
+  --cp-warning: #f59e0b;
+  --cp-link: #0078d4;
+  --cp-shadow: 0 18px 48px rgba(0, 0, 0, 0.12);
+  --cp-overlay: rgba(255, 255, 255, 0.8);
+  --cp-panel: rgba(255, 255, 255, 0.86);
+  --cp-panel-strong: rgba(255, 255, 255, 0.96);
+  --cp-sheen: rgba(255, 255, 255, 0.55);
+  --cp-highlight: rgba(177, 31, 75, 0.12);
+}
+html[data-theme="dark"] {
+  color-scheme: dark;
+  --cp-bg: #3d3b3a;
+  --cp-bg-elevated: #343231;
+  --cp-surface: #292929;
+  --cp-surface-soft: #2e2e2e;
+  --cp-border: #474747;
+  --cp-border-strong: #5f5f5f;
+  --cp-text: #dedede;
+  --cp-text-muted: #919191;
+  --cp-text-soft: #b0b0b0;
+  --cp-accent: #fd8ea1;
+  --cp-accent-hover: #fb7b91;
+  --cp-accent-soft: rgba(253, 142, 161, 0.14);
+  --cp-accent-fg: #1a1a1a;
+  --cp-success: #4ade80;
+  --cp-danger: #f87171;
+  --cp-warning: #fbbf24;
+  --cp-link: #4da6ff;
+  --cp-shadow: 0 18px 48px rgba(0, 0, 0, 0.32);
+  --cp-overlay: rgba(41, 41, 41, 0.88);
+  --cp-panel: rgba(41, 41, 41, 0.72);
+  --cp-panel-strong: rgba(41, 41, 41, 0.96);
+  --cp-sheen: rgba(255, 255, 255, 0.04);
+  --cp-highlight: rgba(253, 142, 161, 0.12);
+}
+*{box-sizing:border-box}body{margin:0;background:var(--cp-bg);color:var(--cp-text);font:13px "Segoe UI",Aptos,Calibri,-apple-system,BlinkMacSystemFont,sans-serif}
+button,select{font:inherit;color:inherit}button{cursor:pointer;background:var(--cp-surface);border:1px solid var(--cp-border);border-radius:6px;padding:7px 11px}button:hover{background:var(--cp-surface-soft)}button:focus-visible,select:focus-visible,summary:focus-visible{outline:3px solid var(--cp-accent);outline-offset:3px}button[disabled]{cursor:default;color:var(--cp-text-soft)}
+.top{height:48px;display:flex;align-items:center;justify-content:space-between;padding:0 22px;background:var(--cp-surface-soft);gap:24px}.brand{font-size:20px;font-weight:650;letter-spacing:-.6px}.brand span{color:var(--cp-accent);margin-right:8px}.search{border:1px solid var(--cp-border);background:var(--cp-surface);padding:7px 12px;width:40%;border-radius:6px;color:var(--cp-text-soft)}.identity{color:var(--cp-text-muted)}.shell{display:grid;grid-template-columns:196px minmax(0,1fr);min-height:calc(100vh - 48px)}
+.nav{padding:16px 12px;background:var(--cp-surface-soft)}.nav div{padding:8px 12px;margin:2px 0}.nav .section{font-size:11px;color:var(--cp-text-soft);margin-top:16px}.nav .selected{background:var(--cp-highlight);border-radius:5px;color:var(--cp-accent)}.nav .symbol{display:inline-block;width:25px;color:var(--cp-text-muted)}
+main{margin:0 5px 5px 0;background:var(--cp-surface);border:1px solid var(--cp-border);border-radius:10px;min-width:0;overflow:hidden}.heading{display:flex;align-items:center;justify-content:space-between;padding:18px 20px 12px;gap:12px}.heading h1{font-size:20px;margin:0;font-weight:600}.viewlabel{font-size:12px;background:var(--cp-surface-soft);padding:6px 10px;border-radius:6px;white-space:nowrap}.tabrow{display:flex;align-items:center;gap:24px;padding:0 20px;border-bottom:1px solid var(--cp-border)}.tab{padding:12px 7px;border-bottom:3px solid var(--cp-accent);font-weight:600}.page-note{color:var(--cp-text-soft);font-size:12px}
+.prototypebar{background:var(--cp-bg-elevated);border-bottom:1px solid var(--cp-border);padding:10px 16px;display:flex;gap:12px;align-items:center;flex-wrap:wrap}.prototypebar strong{font-size:11px;letter-spacing:.6px;color:var(--cp-accent)}.prototypebar label{margin-left:auto;display:flex;gap:6px;align-items:center}.prototypebar button{font-size:12px;padding:5px 10px}.filterbar{display:flex;align-items:center;gap:10px;min-height:56px;padding:10px 16px;flex-wrap:wrap;background:var(--cp-surface-soft)}.global{display:flex;align-items:center;gap:7px}.chip{display:flex;align-items:center;background:var(--cp-surface);border:1px solid var(--cp-border);border-radius:6px;min-height:32px;flex-wrap:wrap}.chip .value{padding:6px 10px}.chip button{border:0;border-left:1px solid var(--cp-border);border-radius:0;background:var(--cp-accent-soft);color:var(--cp-accent);font-size:12px}.chip .clear{background:var(--cp-surface);color:var(--cp-text-muted);border-radius:0 6px 6px 0}.reset{margin-left:auto;border:0;background:var(--cp-surface-soft);color:var(--cp-link)}.scopebar{display:flex;align-items:center;gap:12px;padding:10px 16px;background:var(--cp-accent-soft);border-bottom:1px solid var(--cp-border)}.scopebar button{margin-left:auto;white-space:nowrap}.scopebar span{color:var(--cp-text-muted);font-size:12px}
+.layout{display:flex;align-items:stretch}.canvas{padding:12px 16px 20px;background:var(--cp-surface-soft);flex:1;min-width:0}.summary{display:grid;grid-template-columns:3fr 1fr 1fr 1fr;gap:8px;margin-bottom:10px}.titlebox{background:var(--cp-surface);padding:12px 16px;display:flex;align-items:flex-start}.titlebox h2{font-size:30px;margin:0;font-weight:600;letter-spacing:-.5px}.widget{position:relative;background:var(--cp-surface);border:1px solid var(--cp-border);border-radius:4px;margin-bottom:10px;min-width:0}.summary .widget{margin:0;min-height:124px}.widget h3{font-size:13px;font-weight:500;margin:0;padding:10px 12px}.metric{font-size:30px;text-align:center;padding:17px 4px 20px;line-height:1.2}.coverage-badge{position:absolute;top:35px;left:10px;z-index:1;font-size:11px;padding:3px 7px;max-width:calc(100% - 20px);border-radius:5px}.scope-on .widget{outline:1px dashed var(--cp-border-strong);outline-offset:-2px}.scope-on .widget.affected{outline:2px solid var(--cp-accent)}.coverage-badge.affected{color:var(--cp-accent);border-color:var(--cp-accent);background:var(--cp-surface)}.scope-on .metric{padding-top:37px;padding-bottom:0}.chart{padding:15px 14px 5px}.scope-on .chart{padding-top:15px}.chart svg{width:100%;height:auto;display:block}.chart text{font:12px "Segoe UI",sans-serif;fill:var(--cp-text-muted)}.chart line.grid{stroke:var(--cp-border);stroke-width:1}.chart rect.bar{fill:var(--cp-accent)}.chart polyline{fill:none;stroke-width:2.5}.chart .member{stroke:var(--cp-accent)}.chart .casual{stroke:var(--cp-border-strong);stroke-dasharray:6 4}.legend{display:flex;gap:18px;justify-content:flex-end;padding:0 20px;font-size:12px}.key:before{content:"";display:inline-block;width:16px;border-top:3px solid var(--cp-accent);vertical-align:middle;margin-right:6px}.key.casual:before{border-color:var(--cp-border-strong);border-top-style:dashed}
+.filters{width:250px;border-right:1px solid var(--cp-border);background:var(--cp-surface);padding:18px 16px;flex-shrink:0}.filters .paneltop{display:flex;align-items:center;justify-content:space-between;margin-bottom:22px}.filters h2{font-size:15px;margin:0}.filters label{display:block;margin-bottom:8px}.filters select{width:100%;padding:9px;background:var(--cp-surface);border:1px solid var(--cp-border);border-radius:6px}.filters p{font-size:12px;color:var(--cp-text-muted);line-height:1.5}.provenance{padding:14px 18px;border-top:1px solid var(--cp-border);font-size:12px;color:var(--cp-text-muted)}.provenance summary{cursor:pointer}.provenance p{max-width:950px;line-height:1.6}.popover{position:fixed;z-index:10;width:330px;max-width:calc(100vw - 24px);padding:18px;background:var(--cp-surface);border:1px solid var(--cp-border-strong);border-radius:10px;box-shadow:var(--cp-shadow)}.popover h2{margin:0 28px 10px 0;font-size:15px}.popover p{line-height:1.55;margin:7px 0}.popover .close{position:absolute;right:9px;top:9px;padding:3px 8px}.popover .detail{font-size:12px;color:var(--cp-text-muted)}.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%)}[hidden]{display:none!important}.hint{font-size:12px;color:var(--cp-text-muted)}
+@media(min-width:1250px){.chart svg{max-height:285px}.scope-on .summary .widget{min-height:124px}}
+@media(max-width:1050px){.shell{grid-template-columns:150px minmax(0,1fr)}.summary{grid-template-columns:repeat(3,1fr)}.titlebox{grid-column:1/-1}.filters{width:220px}.search{display:none}.heading h1{font-size:17px}}
+@media(max-width:720px){.nav{display:none}.shell{display:block}.identity{display:none}.heading{align-items:flex-start}.heading h1{font-size:16px}.viewlabel{font-size:10px}.filters{position:fixed;top:48px;left:0;bottom:0;z-index:5;box-shadow:var(--cp-shadow);width:270px}.summary{gap:5px}.metric{font-size:23px}.canvas{padding:10px}.titlebox h2{font-size:25px}.prototypebar label{margin-left:0}.scopebar{align-items:flex-start;flex-wrap:wrap}.scopebar span{display:none}.coverage-badge{font-size:10px}.top{padding:0 14px}}
+.tabrow{gap:8px}.tab{background:var(--cp-surface);border:0;border-radius:0;border-bottom:3px solid var(--cp-surface);font-weight:400;padding:12px 16px}.tab[aria-selected="true"]{border-bottom-color:var(--cp-accent);font-weight:600}.tabrow .page-note{margin-left:auto}.layout{min-height:540px}.filters{order:2;border-right:0;border-left:1px solid var(--cp-border)}.canvas{order:1}.canvas.single-page{min-height:540px}.single-page .widget{max-width:100%}.heading h1{font-size:18px}.widget{border-radius:3px}.titlebox h2{font-size:28px}.prototypebar{font-size:12px}.scope-on .metric{padding-top:37px;padding-bottom:0}.chip button[aria-expanded="true"]{background:var(--cp-highlight)}.edge-note{margin:12px 0 0;padding:12px;border:1px solid var(--cp-border);border-radius:6px;font-size:12px;color:var(--cp-text-muted);line-height:1.5}
+@media(max-width:720px){.filters{left:auto;right:0}.tabrow{flex-wrap:wrap;padding:0 8px}.tabrow .page-note{display:none}.chip{max-width:100%}.chip button{white-space:normal;text-align:left}.summary .widget{min-height:146px}.scope-on .metric{padding-top:54px}}
+.top{background:var(--cp-surface-soft);padding:0 16px;gap:16px}.brand{display:flex;align-items:center;font-size:19px;letter-spacing:-.8px;font-weight:650;gap:8px;min-width:182px}.brand svg{width:22px;height:25px;fill:var(--cp-text)}.brand small{font-size:9px;letter-spacing:0;display:block;color:var(--cp-text-muted);font-weight:400}.search{max-width:520px;flex:1;width:auto}.nav .selected{background:var(--cp-surface);color:var(--cp-text);border:1px solid var(--cp-border)}.tab[aria-selected="true"]{border-bottom-color:var(--cp-link);color:var(--cp-link)}.global[aria-expanded="true"]{color:var(--cp-link);border-color:var(--cp-link)}.chart rect.bar{fill:var(--cp-link)}.chart .member{stroke:var(--cp-link)}.key:before{border-color:var(--cp-link)}.coverage-badge.affected{color:var(--cp-link);border-color:var(--cp-link)}.scope-on .widget.affected{outline-color:var(--cp-link)}.chip button{color:var(--cp-link);background:var(--cp-surface-soft)}.scopebar{background:var(--cp-surface-soft)}.scopebar strong{color:var(--cp-link)}.chip button[aria-expanded="true"]{background:var(--cp-surface-soft);text-decoration:underline}.heading{padding:16px 20px 10px}.actions{display:flex;gap:8px;align-items:center}.primary{color:var(--cp-accent-fg);background:var(--cp-link);border-color:var(--cp-link)}.primary:hover{background:var(--cp-link);filter:brightness(.95)}.actions .disabled-action{font-size:12px;color:var(--cp-text-soft);padding:6px}.editor-tools{display:flex;gap:4px;align-items:center;padding:8px 16px;border-bottom:1px solid var(--cp-border)}.editor-tools .tool{padding:5px 10px;border:0}.editor-tools span{color:var(--cp-text-soft);padding:0 8px;font-size:12px}.filters{order:0;border-left:0;border-right:1px solid var(--cp-border);width:230px;padding:14px 12px}.filters .paneltop{margin-bottom:18px;gap:6px}.paneltop button{padding:3px 8px}.filter-widget{border:1px solid var(--cp-border);border-radius:4px;padding:12px;position:relative;background:var(--cp-surface)}.filter-widget.selected{border-color:var(--cp-link)}.filter-widget .filter-title{width:100%;text-align:left;border:0;padding:0 26px 9px 0;background:var(--cp-surface);font-weight:600}.filter-widget .more-filter{position:absolute;right:4px;top:4px;border:0;padding:3px 8px}.empty-filter{color:var(--cp-text-muted);font-size:12px;line-height:1.6}.empty-list{padding:30px 8px;text-align:center;color:var(--cp-text-soft)}.value-wrap{position:relative}.value-trigger{width:100%;text-align:left;display:flex;justify-content:space-between;border-radius:4px;padding:7px 9px}.dropdown{position:absolute;left:0;right:0;top:calc(100% + 4px);background:var(--cp-surface);border:1px solid var(--cp-border);border-radius:6px;box-shadow:var(--cp-shadow);z-index:7;padding:4px}.dropdown button{display:block;width:100%;border:0;border-radius:3px;text-align:left}.dropdown button[aria-selected="true"]{background:var(--cp-surface-soft);color:var(--cp-link);font-weight:600}.config{order:3;width:274px;flex-shrink:0;border-left:1px solid var(--cp-border);background:var(--cp-surface);padding:14px 16px}.config .section-title{display:flex;align-items:center;justify-content:space-between;font-weight:600;margin-bottom:12px}.config .section-title button{border:0;padding:2px 8px}.config .block{padding:14px 0;border-bottom:1px solid var(--cp-border)}.config .block:first-child{padding-top:0}.config label{display:flex;align-items:center;gap:7px;margin:8px 0}.config select{width:100%;padding:7px 9px;background:var(--cp-surface);border:1px solid var(--cp-border);border-radius:4px}.field-pill{display:flex;align-items:center;border:1px solid var(--cp-border);border-radius:4px;padding:8px;gap:6px;font-size:12px}.field-pill span{flex:1}.field-pill small{display:block;color:var(--cp-text-soft);margin-top:3px}.field-pill button{padding:0 5px;border:0}.config .inactive{color:var(--cp-text-soft);font-size:12px}.picker{position:fixed;width:310px;max-width:calc(100vw - 24px);background:var(--cp-surface);border:1px solid var(--cp-border-strong);border-radius:8px;padding:12px;z-index:12;box-shadow:var(--cp-shadow);max-height:70vh;overflow:auto}.picker input{width:100%;padding:8px;border:1px solid var(--cp-border);border-radius:4px;color:var(--cp-text);background:var(--cp-surface);font:inherit}.picker .picker-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}.picker details{border-bottom:1px solid var(--cp-border);padding:9px 0}.picker summary{cursor:pointer;font-weight:600}.picker .field-option{display:block;width:100%;border:0;text-align:left;padding:8px 10px;margin-top:3px}.picker .field-option:hover{background:var(--cp-surface-soft)}.picker p{font-size:12px;color:var(--cp-text-muted);line-height:1.5}.config-empty{color:var(--cp-text-muted);font-size:13px}.viewlabel{color:var(--cp-text-muted)}.prototypebar strong{color:var(--cp-text-muted)}.prototypebar{gap:8px}.prototypebar .mode{color:var(--cp-link)}.titlebox{padding-left:10px}.titlebox h2{font-size:27px}.summary{grid-template-columns:2.3fr 1fr 1fr 1fr}.canvas{padding:14px 16px;background:var(--cp-surface-soft)}.guide-extra{font-size:11px;color:var(--cp-text-soft)}
+@media(max-width:1100px){.summary{grid-template-columns:repeat(3,1fr)}.titlebox{grid-column:1/-1}.config{width:240px}.filters{width:205px}.actions .disabled-action{display:none}}
+@media(max-width:820px){.config{position:fixed;right:0;top:48px;bottom:0;z-index:6;overflow:auto;box-shadow:var(--cp-shadow);width:270px}.filters{position:fixed;left:0;right:auto;top:48px;bottom:0;z-index:5;width:230px;box-shadow:var(--cp-shadow)}.actions{flex-wrap:wrap}.heading h1{font-size:15px}.editor-tools span{display:none}.prototypebar{font-size:11px}.brand{min-width:140px}.search{display:none}}
+</style>
+</head>
+<body>
+<header class="top"><div class="brand" aria-label="Databricks concept prototype"><svg viewBox="0 0 24 26" aria-hidden="true"><path d="M22.72 10.562l-10.721 5.956L.543 10.152l-.543.3v4.627l11.998 6.672 10.722-5.959v2.458l-10.721 5.962-11.453-6.37-.546.3v.786L11.998 25.6 24 18.928v-4.631l-.543-.3-11.459 6.366L1.28 14.407V11.96L12 17.91 24 11.24V6.672l-.603-.331-11.398 6.338-10.15-5.647 10.15-5.644 8.364 4.65.744-.413v-.559L12 0 0 6.675v.716l11.998 6.672L22.72 8.104v2.458z"/></svg><div>databricks<small>Free Edition · concept prototype</small></div></div><div class="search">⌕ &nbsp; Search data, notebooks, recents, and more… <small style="float:right">CTRL + P</small></div><div class="identity">workspace ⌄ &nbsp; ◇ Genie Code &nbsp; ▦ &nbsp; E</div></header>
+<div class="shell">
+<aside class="nav" aria-label="Product context, non-interactive"><div><span class="symbol">⌂</span>Home</div><div><span class="symbol">◇</span>Learn</div><div><span class="symbol">▣</span>Workspace</div><div><span class="symbol">◷</span>Recents</div><div><span class="symbol">♧</span>Catalog</div><div><span class="symbol">⌘</span>Jobs &amp; Pipelines</div><div><span class="symbol">▱</span>Compute</div><div class="section">SQL</div><div>SQL Editor</div><div>Queries</div><div class="selected">▤ &nbsp; Dashboards</div><div>Genie Agents</div><div>Alerts</div><div>Query History</div><div>SQL Warehouses</div><div class="section">Data Engineering</div><div>Runs</div><div>Data Ingestion</div></aside>
+<main>
+<div class="heading"><h1>Bike share data analysis <span style="font-weight:400;color:var(--cp-text-soft)">☆</span></h1><div class="actions"><span class="disabled-action" aria-label="Static sample toolbar">⋯ &nbsp; ▣ &nbsp; ↻ &nbsp; Serverless Starter Warehouse</span><span id="modeLabel" class="viewlabel">Draft</span><button id="modeSwitch">Preview as viewer</button></div></div>
+<div class="tabrow"><div role="tablist" aria-label="Dashboard pages"><button id="tab-build" class="tab" role="tab" aria-selected="false" aria-controls="canvas" tabindex="-1" data-page="build">Build with Genie</button><button id="tab-dashboard" class="tab" role="tab" aria-selected="true" aria-controls="canvas" data-page="dashboard">Dashboard</button></div><span class="page-note">Viewer-side concept · two demo pages</span></div>
+<section class="prototypebar" aria-label="Prototype demonstration controls"><strong>LOCAL DEMO</strong><span id="guide">Open Global filters to begin.</span><label><input id="proposed" type="checkbox" checked> Proposed scope cue</label><button id="startSetup">Create filter from scratch</button><button id="edgeCase">Zero-coverage example</button><button id="restart">Reset demo</button></section>
+<div id="editorTools" class="editor-tools" aria-label="Draft toolbar"><span>◇ Genie Code</span><span>↖ Select</span><span>▥ Visualization</span><span>T Text</span><button id="toolbarFilter" class="tool" aria-label="Open global filter creation">⚲ Filter</button><span>▧ Image &nbsp; ↶ &nbsp; ↷</span></div>
+<div class="filterbar"><button class="global" id="toggleFilters" aria-expanded="false" aria-controls="filters">⚲ &nbsp; Global filters</button><div id="chip" class="chip" hidden><span class="value">Rider Type: <strong id="chipValue"></strong></span><button id="coverage" aria-expanded="false" aria-controls="canvas">Applies to 1 of 5 charts</button><button class="clear" id="clear" aria-label="Clear Rider Type filter">×</button></div><span id="allHint" class="hint">No filters selected</span><button class="reset" id="reset">Reset all to default</button></div>
+<div id="scopebar" class="scopebar" hidden><strong id="scopeSummary"></strong><span>Labels describe this filter only, not whether values changed.</span><button id="hideCoverage">Hide coverage</button></div>
+<div class="layout">
+<section id="filters" class="filters" hidden aria-labelledby="filterTitle"><div class="paneltop"><h2 id="filterTitle">Global filters</h2><button id="addFilter" aria-label="Add a global filter">＋</button><button id="closeFilters" aria-label="Close global filters">×</button></div><div id="emptyFilters" class="empty-list" hidden>⚲<p>No global filters.</p><button id="addFirst">Add a global filter</button></div><div id="filterWidget" class="filter-widget"><button id="selectFilter" class="filter-title">Rider Type</button><button id="removeFilter" class="more-filter" aria-label="Remove demo filter" title="Remove demo filter">×</button><div id="unbound" class="empty-filter" hidden>Select fields or parameters to filter.</div><div id="valueWrap" class="value-wrap"><button id="valueTrigger" class="value-trigger" aria-haspopup="listbox" aria-expanded="false" aria-controls="valueMenu"><span id="valueText">All</span><span aria-hidden="true">⌄</span></button><div id="valueMenu" class="dropdown" role="listbox" aria-label="Rider Type values" hidden><button role="option" data-value="all" aria-selected="true">All</button><button role="option" data-value="casual" aria-selected="false">casual</button><button role="option" data-value="member" aria-selected="false">member</button></div></div></div></section>
+<div id="canvas" class="canvas" role="tabpanel" aria-labelledby="tab-dashboard">
+<div id="summary" class="summary"><div class="titlebox"><h2>Bike Share Analytics</h2></div>
+<section class="widget" data-widget="revenue"><h3>Total Revenue</h3><button class="coverage-badge" hidden data-reason="revenue">Not affected · Why?</button><div class="metric">$991</div></section>
+<section class="widget" data-widget="trips"><h3>Total Trips</h3><button class="coverage-badge" hidden data-reason="trips">Not affected · Why?</button><div class="metric">200</div></section>
+<section class="widget" data-widget="fare"><h3>Avg Fare per Trip</h3><button class="coverage-badge" hidden data-reason="fare">Not affected · Why?</button><div class="metric">$4.95</div></section></div>
+<section class="widget" data-widget="station"><h3>Total Revenue by Station</h3><button class="coverage-badge" hidden data-reason="station">Not affected · Why?</button><div class="chart" id="bars"></div></section>
+<section class="widget affected" data-widget="daily"><h3>Daily Revenue by Rider Type</h3><button class="coverage-badge affected" hidden data-reason="daily">✓ Affected · Details</button><div class="legend" id="legend"></div><div class="chart" id="lines"></div></section>
+</div><aside id="config" class="config" hidden aria-label="Filter configuration"><div class="section-title">Widget <button id="closeConfig" aria-label="Close filter configuration">×</button></div><div id="configEmpty" class="config-empty">Select a widget to configure.</div><div id="configBody"><div class="block"><label><input id="showTitle" type="checkbox" checked> Title</label><label><input id="showDescription" type="checkbox"> Description</label><input id="filterDescription" hidden aria-label="Filter description" placeholder="Add a description" style="width:100%;padding:7px;border:1px solid var(--cp-border);background:var(--cp-surface);color:var(--cp-text)"></div><div class="block"><div class="section-title">Filter</div><select aria-label="Filter type"><option>Single value</option></select></div><div class="block"><div class="section-title">Fields <button id="addField" aria-label="Add data field">＋</button></div><div id="fieldPill" class="field-pill"><span>▧ &nbsp; Rider Type<small id="fieldDataset">daily revenue</small></span><button id="removeField" aria-label="Remove Rider Type field">×</button></div></div><div class="block"><div class="section-title">Parameters <button disabled title="No parameters in the sample">＋</button></div></div><div class="block"><div class="section-title">Variables <button disabled title="Not modeled in this prototype">＋</button></div></div><div class="block"><div class="section-title">Settings</div><label><input id="allowAll" type="checkbox" checked> Allow All</label></div><div class="block"><div class="section-title">Default Value</div><select id="defaultValue" aria-label="Default filter value"><option value="all">All</option><option value="casual">casual</option><option value="member">member</option></select></div></div></aside></div>
+<details class="provenance"><summary>About this prototype and its data</summary><p>This is a local concept, not a shipped Databricks feature. The layout, chart names, station identifiers, and headline values follow the bike-sharing demo we explored. $991, 200, and $4.95 are observed display values; the full-resolution underlying totals were not exported. Station and daily chart values here are illustrative, with synthetic revenue summing to $991. The member/casual series do not claim to reproduce the original rows. The scope cue, highlights, and explanations are proposed. The product navigation is visual context, not functional navigation. This uses the Scout theme, so chart and accent colors differ from the original screenshot.</p><p>The Dashboard page has five charts; only the daily chart responds to Rider Type. Build with Genie has one unconnected station chart. The selection and active chip persist across both pages, even where no chart is affected. This behavior was confirmed in the actual draft editor; the published viewer behavior has not been independently verified. This prototype illustrates the proposed viewer experience, not a pixel-perfect published-view replica.</p><p>All is the default. Coverage is computed for the current page. Switching pages preserves an open coverage overlay but closes chart-specific explanations. Clearing the filter clears it across both pages. No data is sent anywhere, no account is needed, and nothing is published. “Proposed scope cue” and “Show zero-coverage case” are reviewer controls, not proposed product UI.</p></details>
+</main></div>
+<section id="fieldPicker" class="picker" role="dialog" aria-label="Choose a dataset field" hidden><div class="picker-top"><strong>Fields</strong><button id="closePicker" aria-label="Close field picker">×</button></div><input id="fieldSearch" type="search" aria-label="Search dataset fields" placeholder="Search"><div id="datasets"><details data-search="trips user_type"><summary>trips</summary><button class="field-option" data-bind="trips">▧ &nbsp; user_type</button><p>Other trip fields are outside this focused demo.</p></details><details data-search="station revenue"><summary>station revenue</summary><p>Station, Number Trips, Total Revenue.<br>No rider-type field in this dataset.</p></details><details data-search="summary"><summary>summary</summary><p>Summary metrics only; no compatible rider-type field.</p></details><details data-search="daily revenue rider type"><summary>daily revenue</summary><button class="field-option" data-bind="daily">▧ &nbsp; Rider Type</button></details></div><p id="noFields" hidden>No matching fields.</p><p>Focused prototype: choose Rider Type under daily revenue to reproduce the observed filter.</p></section>
+<section id="popover" class="popover" role="dialog" aria-modal="false" aria-labelledby="popTitle" hidden><button class="close" id="closePopover" aria-label="Close explanation">×</button><h2 id="popTitle"></h2><p id="popBody"></p><p class="detail" id="popDetail"></p></section>
+<div id="announce" class="sr" role="status" aria-live="polite"></div>
+<script>
+const $=id=>document.getElementById(id);
+const state={rider:'all',coverage:false,proposed:true,filters:false,page:'dashboard',mode:'author',exists:true,bound:true,binding:'daily',config:false,allowAll:true,defaultValue:'all',showTitle:true};
+const widgets={revenue:{name:'Total Revenue',dataset:'summary'},trips:{name:'Total Trips',dataset:'summary'},fare:{name:'Avg Fare per Trip',dataset:'summary'},station:{name:'Total Revenue by Station',dataset:'station'},daily:{name:'Daily Revenue by Rider Type',dataset:'daily'}};
+const applies=id=>state.exists&&state.bound&&widgets[id].dataset===state.binding;
+const pages={dashboard:{name:'Dashboard',widgets:['revenue','trips','fare','station','daily']},build:{name:'Build with Genie',widgets:['station']}};
+function coverage(){
+ const ids=pages[state.page].widgets;
+ return {total:ids.length,affected:ids.filter(applies).length};
+}
+function coverageText(){
+ const {total,affected}=coverage();
+ return !total?'No charts on this page':!affected?'Does not apply to any charts on this page':affected===total?`Applies to all ${total} charts on this page`:`Applies to ${affected} of ${total} charts on this page`;
+}
+// Synthetic chart points; headline values are the observed demo display values.
+const stationValues=[38,63,106.5,71,120,92,70,78,51,90,62,36,45,68.5];
+const stationNames=['station-1','station-10','station-11','station-12','station-13','station-14','station-2','station-3','station-4','station-5','station-6','station-7','station-8','station-9'];
+const member=[22,19,26,16,35,13,14,16,15,5,5,12,2,3,30,12,42,25,21,12,22,14,13,6,28,26,12,10];
+const casual=[16,18,22,14,25,15,19,18,23,11,14,19,10,15,27,16,32,25,20,14,19,16,14,11,25,20,18,19];
+let popTrigger=null;
+function bars(){
+ let svg='<svg viewBox="0 0 1100 255" role="img" aria-label="Illustrative revenue across 14 stations, all riders; unchanged by Rider Type">';
+ [0,50,100].forEach(v=>{const y=170-v;svg+=`<line class="grid" x1="65" x2="1030" y1="${y}" y2="${y}"/><text x="50" y="${y+4}" text-anchor="end">${v}</text>`});
+ stationValues.forEach((v,i)=>{const x=75+i*67;svg+=`<rect class="bar" x="${x}" y="${170-v}" width="53" height="${v}"><title>${stationNames[i]}: $${v.toFixed(2)} · All riders · illustrative</title></rect><text transform="translate(${x+25},183) rotate(65)" text-anchor="start" style="font-size:10px">${stationNames[i]}</text>`});
+ svg+='<text x="540" y="249" text-anchor="middle">Station</text><text transform="translate(17,105) rotate(-90)" text-anchor="middle">Total Revenue</text></svg>';$('bars').innerHTML=svg;
+}
+function lines(){
+ const effective=applies('daily')?state.rider:'all';
+ const series=effective==='all'?['member','casual']:[effective];
+ const data={member,casual};
+ let svg=`<svg viewBox="0 0 1100 235" role="img" aria-label="Illustrative daily revenue for ${effective==='all'?'all riders':effective+' riders only'}">`;
+ [0,20,40].forEach(v=>{const y=180-v*3.5;svg+=`<line class="grid" x1="65" x2="1030" y1="${y}" y2="${y}"/><text x="50" y="${y+4}" text-anchor="end">${v}</text>`});
+ [0,4,8,12,16,20,24,27].forEach(i=>{const x=65+i*35;svg+=`<line class="grid" x1="${x}" x2="${x}" y1="20" y2="180"/><text x="${x}" y="202" text-anchor="middle" style="font-size:11px">Mar ${String(i+2).padStart(2,'0')}</text>`});
+ series.forEach(s=>svg+=`<polyline class="${s}" points="${data[s].map((v,i)=>`${65+i*35},${180-v*3.5}`).join(' ')}"><title>${s} · illustrative daily revenue</title></polyline>`);
+ svg+='<text x="540" y="230" text-anchor="middle">Date · March 2026</text><text transform="translate(17,100) rotate(-90)" text-anchor="middle">Daily Revenue</text></svg>';$('lines').innerHTML=svg;
+ $('legend').innerHTML=series.map(s=>`<span class="key ${s}">${s}</span>`).join('');
+}
+function closePop(restore=true){$('popover').hidden=true;if(restore&&popTrigger?.isConnected&&!popTrigger.hidden)popTrigger.focus();popTrigger=null}
+function render(){
+ const active=state.exists&&state.bound&&state.rider!=='all';
+ const author=state.mode==='author';
+ const {total,affected}=coverage();
+ if(!active||!state.proposed)state.coverage=false;
+ $('summary').hidden=state.page!=='dashboard';
+ document.querySelectorAll('[data-widget]').forEach(w=>{w.hidden=!pages[state.page].widgets.includes(w.dataset.widget);w.classList.toggle('affected',applies(w.dataset.widget))});
+ document.querySelectorAll('[data-page]').forEach(tab=>{const selected=tab.dataset.page===state.page;tab.setAttribute('aria-selected',selected);tab.tabIndex=selected?0:-1});
+ $('canvas').setAttribute('aria-labelledby','tab-'+state.page);
+ $('canvas').classList.toggle('single-page',state.page==='build');
+ $('filters').hidden=!state.filters;$('toggleFilters').setAttribute('aria-expanded',state.filters);
+ $('proposed').checked=state.proposed;
+ $('editorTools').hidden=!author;$('modeLabel').textContent=author?'Draft':'Viewer preview';
+ $('modeSwitch').textContent=author?'Preview as viewer':'Back to editor';
+ $('addFilter').hidden=!author;$('addFilter').disabled=state.exists;$('removeFilter').hidden=!author;
+ $('emptyFilters').hidden=state.exists;$('addFirst').hidden=!author;
+ $('filterWidget').hidden=!state.exists;$('filterWidget').classList.toggle('selected',author&&state.config);
+ $('selectFilter').textContent=state.bound?'Rider Type':'Filter title';$('selectFilter').hidden=!state.showTitle;
+ $('selectFilter').disabled=false;$('selectFilter').setAttribute('aria-label',author?'Configure Rider Type filter':'Rider Type filter');
+ $('unbound').hidden=state.bound;$('valueWrap').hidden=!state.bound;
+ $('valueText').textContent=state.rider==='all'?'All':state.rider;
+ document.querySelectorAll('[data-value]').forEach(b=>{b.setAttribute('aria-selected',b.dataset.value===state.rider);b.hidden=b.dataset.value==='all'&&!state.allowAll});
+ $('config').hidden=!author||!state.config;$('configEmpty').hidden=state.exists;$('configBody').hidden=!state.exists;
+ $('fieldPill').hidden=!state.bound;$('fieldDataset').textContent=state.binding==='daily'?'daily revenue':'trips / user_type';
+ $('allowAll').checked=state.allowAll;$('defaultValue').value=state.defaultValue;$('showTitle').checked=state.showTitle;
+ $('defaultValue').querySelector('[value="all"]').disabled=!state.allowAll;
+ $('chip').hidden=!active;$('allHint').hidden=active;$('chipValue').textContent=state.rider;
+ $('coverage').hidden=!state.proposed;$('coverage').textContent=coverageText();
+ $('coverage').title=state.coverage?'Hide chart highlights':'Show which charts this filter affects';
+ $('coverage').setAttribute('aria-expanded',state.coverage);
+ $('scopebar').hidden=!state.coverage;$('canvas').classList.toggle('scope-on',state.coverage);
+ $('scopeSummary').textContent=`Rider Type · ${affected} of ${total} ${total===1?'chart':'charts'} affected on this page`;
+ document.querySelectorAll('[data-reason]').forEach(b=>{const yes=applies(b.dataset.reason);b.hidden=!state.coverage;b.classList.toggle('affected',yes);b.textContent=yes?'✓ Affected · Details':'Not affected · Why?';b.setAttribute('aria-label',`${widgets[b.dataset.reason].name}: ${yes?'affected by Rider Type; details':'not affected by Rider Type; why?'}`)});
+ $('guide').textContent=!state.exists?'Global filters → + → Fields + → daily revenue → Rider Type.':!state.bound?'In the right inspector, select Fields + to connect a dataset.':!active?'Select member, then switch pages. Preview as viewer hides author controls.':!state.proposed?'Before: the selected filter stays visible even on an unaffected page.':state.page==='build'?'Zero coverage: the global selection is retained on this page.':state.coverage?'Switch to Build with Genie to see the scope change.':'Click the scope cue to see which charts are affected.';
+ lines();
+}
+$('toggleFilters').addEventListener('click',()=>{closePop(false);state.filters=!state.filters;render();if(state.filters&&state.bound&&state.exists)$('valueTrigger').focus()});
+$('closeFilters').addEventListener('click',()=>{state.filters=false;render();$('toggleFilters').focus()});
+function closeValues(){ $('valueMenu').hidden=true;$('valueTrigger').setAttribute('aria-expanded','false') }
+function closePicker(focus=false){$('fieldPicker').hidden=true;if(focus)$('addField').focus()}
+function reset(){closePop(false);closeValues();closePicker();state.rider=state.defaultValue;state.coverage=false;render();$('announce').textContent='Rider Type reset to its default on all pages.'}
+$('clear').addEventListener('click',()=>{reset();$('toggleFilters').focus()});$('reset').addEventListener('click',reset);
+$('restart').addEventListener('click',()=>{Object.assign(state,{proposed:true,filters:false,page:'dashboard',mode:'author',exists:true,bound:true,binding:'daily',config:false,allowAll:true,defaultValue:'all',showTitle:true});clearDescription();reset()});
+$('edgeCase').addEventListener('click',()=>{closePop(false);closePicker();closeValues();Object.assign(state,{page:'build',rider:'casual',proposed:true,coverage:false,filters:true,exists:true,bound:true,binding:'daily',config:false});render();$('announce').textContent='Build with Genie. Rider Type casual remains active. No charts on this page are affected.'});
+function setup(){closePop(false);closePicker();closeValues();clearDescription();Object.assign(state,{mode:'author',exists:false,bound:false,binding:'daily',rider:'all',defaultValue:'all',allowAll:true,config:false,filters:true,coverage:false,showTitle:true});render()}
+$('startSetup').addEventListener('click',setup);
+$('toolbarFilter').addEventListener('click',()=>{state.filters=true;render();(state.exists?$('selectFilter'):$('addFilter')).focus()});
+function addFilter(){state.exists=true;state.bound=false;state.config=true;state.filters=true;render();$('addField').focus()}
+$('addFilter').addEventListener('click',addFilter);$('addFirst').addEventListener('click',addFilter);
+$('selectFilter').addEventListener('click',()=>{if(state.mode==='author'){state.config=true;render()}else{$('valueTrigger').focus()}});
+$('removeFilter').addEventListener('click',setup);
+$('closeConfig').addEventListener('click',()=>{state.config=false;closePicker();render();$('modeSwitch').focus()});
+$('modeSwitch').addEventListener('click',()=>{closePop(false);closePicker();closeValues();state.mode=state.mode==='author'?'viewer':'author';state.config=false;render()});
+$('showTitle').addEventListener('change',e=>{state.showTitle=e.target.checked;render()});
+$('showDescription').addEventListener('change',e=>{$('filterDescription').hidden=!e.target.checked;syncDescription()});
+function syncDescription(){
+ let description=$('widgetDescription');
+ if(!description){description=document.createElement('p');description.id='widgetDescription';$('filterWidget').appendChild(description)}
+ description.textContent=$('filterDescription').value;
+ description.hidden=!$('showDescription').checked||!description.textContent;
+}
+function clearDescription(){$('showDescription').checked=false;$('filterDescription').value='';$('filterDescription').hidden=true;syncDescription()}
+$('filterDescription').addEventListener('input',syncDescription);
+$('valueTrigger').addEventListener('click',()=>{closePop(false);if(state.mode==='author')state.config=true;render();const open=$('valueMenu').hidden;$('valueMenu').hidden=!open;$('valueTrigger').setAttribute('aria-expanded',open);if(open)$('valueMenu').querySelector('[aria-selected="true"]').focus()});
+document.querySelectorAll('[data-value]').forEach(b=>{
+ b.addEventListener('click',()=>{state.rider=b.dataset.value;closeValues();closePop(false);render();$('valueTrigger').focus();$('announce').textContent=`Rider Type: ${state.rider}. ${state.proposed?coverageText():''}`});
+ b.addEventListener('keydown',e=>{const options=[...$('valueMenu').querySelectorAll('button')].filter(v=>!v.hidden);let i=options.indexOf(b);if(e.key==='ArrowDown'||e.key==='ArrowUp'){e.preventDefault();options[(i+(e.key==='ArrowDown'?1:options.length-1))%options.length].focus()}});
+});
+$('allowAll').addEventListener('change',e=>{state.allowAll=e.target.checked;if(!state.allowAll){if(state.rider==='all')state.rider='casual';if(state.defaultValue==='all')state.defaultValue='casual'}render()});
+$('defaultValue').addEventListener('change',e=>{state.defaultValue=e.target.value;render();$('announce').textContent='Default updated. Reset all to default applies this value.'});
+$('removeField').addEventListener('click',()=>{state.bound=false;state.rider='all';state.coverage=false;render();$('addField').focus()});
+$('addField').addEventListener('click',()=>{
+ closeValues();$('fieldPicker').hidden=false;$('fieldSearch').value='';
+ $('datasets').querySelectorAll('details').forEach(d=>{d.hidden=false;d.open=false});$('noFields').hidden=true;
+ const box=$('addField').getBoundingClientRect(),picker=$('fieldPicker');
+ picker.style.left=Math.max(12,Math.min(box.left-280,innerWidth-picker.offsetWidth-12))+'px';
+ picker.style.top=Math.max(12,Math.min(box.bottom+6,innerHeight-picker.offsetHeight-12))+'px';$('fieldSearch').focus();
+});
+$('closePicker').addEventListener('click',()=>closePicker(true));
+$('fieldSearch').addEventListener('input',e=>{const q=e.target.value.toLowerCase().trim();let matches=0;$('datasets').querySelectorAll('details').forEach(d=>{d.hidden=!d.dataset.search.includes(q);if(!d.hidden)matches++;d.open=!!q});$('noFields').hidden=matches>0});
+document.querySelectorAll('[data-bind]').forEach(b=>b.addEventListener('click',()=>{state.binding=b.dataset.bind;state.bound=true;state.rider=state.defaultValue;closePicker(true);render();$('announce').textContent='Field connected. Choose a filter value in the Global filters panel.'}));
+function switchPage(id){
+ closePop(false);closePicker();closeValues();state.page=id;render();
+ $('announce').textContent=`${pages[id].name}. ${state.rider==='all'?'Rider Type is All.':`Rider Type remains ${state.rider}. ${state.proposed?coverageText():''}`}`;
+}
+document.querySelectorAll('[data-page]').forEach(tab=>{
+ tab.addEventListener('click',()=>switchPage(tab.dataset.page));
+ tab.addEventListener('keydown',e=>{
+  const ids=['build','dashboard'];const index=ids.indexOf(state.page);let next;
+  if(e.key==='ArrowRight')next=ids[(index+1)%ids.length];
+  if(e.key==='ArrowLeft')next=ids[(index+ids.length-1)%ids.length];
+  if(e.key==='Home')next=ids[0];if(e.key==='End')next=ids[ids.length-1];
+  if(next){e.preventDefault();switchPage(next);$('tab-'+next).focus()}
+ });
+});
+$('proposed').addEventListener('change',e=>{closePop(false);state.proposed=e.target.checked;render()});
+$('coverage').addEventListener('click',()=>{closePop(false);state.coverage=!state.coverage;render();$('announce').textContent=state.coverage?`Coverage shown. ${coverageText()}`:'Coverage hidden.'});
+$('hideCoverage').addEventListener('click',()=>{closePop(false);state.coverage=false;render();$('coverage').focus()});
+document.querySelectorAll('[data-reason]').forEach(button=>button.addEventListener('click',()=>{
+ const id=button.dataset.reason,w=widgets[id],yes=applies(id);
+ closePop(false);popTrigger=button;
+ $('popTitle').textContent=w.name;
+ $('popBody').textContent=yes?`This chart is filtered to ${state.rider} riders.`:'This chart is not filtered by Rider Type.';
+ $('popDetail').textContent=yes?'Its data is connected to this filter. Changing Rider Type updates this chart.':`It continues to include both member and casual riders. The dashboard's data setup does not connect this chart to Rider Type.`;
+ const pop=$('popover');pop.hidden=false;
+ const r=button.getBoundingClientRect();const width=pop.offsetWidth,height=pop.offsetHeight;
+ pop.style.left=Math.max(12,Math.min(r.left,innerWidth-width-12))+'px';
+ pop.style.top=Math.max(12,r.bottom+height+12<innerHeight?r.bottom+8:r.top-height-8)+'px';
+ $('closePopover').focus();
+}));
+$('closePopover').addEventListener('click',()=>closePop());
+document.addEventListener('keydown',e=>{if(e.key==='Escape'){if(!$('fieldPicker').hidden){closePicker(true);e.preventDefault()}else if(!$('valueMenu').hidden){closeValues();$('valueTrigger').focus()}else if(!$('popover').hidden){closePop();e.preventDefault()}else if(state.coverage){state.coverage=false;render();$('coverage').focus()}else if(state.filters){state.filters=false;render();$('toggleFilters').focus()}}});
+document.addEventListener('pointerdown',e=>{if(!$('valueMenu').hidden&&!$('valueWrap').contains(e.target))closeValues();if(!$('fieldPicker').hidden&&!$('fieldPicker').contains(e.target)&&!$('addField').contains(e.target))closePicker()});
+document.addEventListener('pointerdown',e=>{if(!$('popover').hidden&&!$('popover').contains(e.target)&&!e.target.closest('[data-reason]'))closePop(false)});
+window.addEventListener('resize',()=>closePop(false));
+bars();render();
+</script>
+</body>
+</html>
